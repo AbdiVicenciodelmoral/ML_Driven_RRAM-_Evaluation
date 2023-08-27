@@ -109,17 +109,23 @@ class MLP:
 
     def train(self, x_train, y_train, epochs=10, batch_size=64):
         num_batches = int(x_train.shape[0] / batch_size)
+        
+        # Track and save the best accuracy weights
+        highest_accuracy = 0.0  
+        best_weights = (self.W1.copy(), self.W2.copy()) 
+        best_biases = (self.b1.copy(), self.b2.copy())  
+        
         for epoch in range(epochs):
             cumulative_loss = 0
             for batch in range(num_batches):
                 x_batch = x_train[batch * batch_size: (batch + 1) * batch_size]
                 y_batch = y_train[batch * batch_size: (batch + 1) * batch_size]
-                
+                    
                 y_batch_int = np.argmax(y_batch, axis=1)  # Convert one-hot encoded labels to integer labels
 
                 # Forward Pass
                 y_pred = self.forward(x_batch)
-                    
+                        
                 # Compute Loss
                 loss = self.compute_loss(y_batch_int, y_pred)
                 cumulative_loss += loss
@@ -130,7 +136,20 @@ class MLP:
             avg_loss = cumulative_loss / num_batches
             train_acc = self.accuracy(y_train, self.forward(x_train))
             print(f"Epoch {epoch + 1}/{epochs} - Loss: {avg_loss:.4f} - Training Accuracy: {train_acc * 100:.2f}%")
-        return train_acc
+
+            # Check if the current accuracy is higher than the highest observed so far
+            if train_acc > highest_accuracy:
+                highest_accuracy = train_acc
+                best_weights = (self.W1.copy(), self.W2.copy())
+                best_biases = (self.b1.copy(), self.b2.copy())
+            else:  # If accuracy decreases, revert to best weights and stop training
+                self.W1, self.W2 = best_weights
+                self.b1, self.b2 = best_biases
+                break
+
+        return highest_accuracy
+
+
 
     def test(self, x_test, y_test):
         y_pred = self.forward(x_test)

@@ -87,7 +87,7 @@ def main():
     train_accuracies = []
     for i in range(100):
         print(f'***** Iteration: {i} *****')
-        model = MLP(28*28, 128, 10, 0.001,known_conductances,3)
+        model = MLP(28*28, 128, 10, 0.05,known_conductances,3)
         train_acc = model.train(x_train, y_train, epochs=50, batch_size=32)
         test_acc = model.test(x_test,y_test)
         train_accuracies.append(train_acc)
@@ -97,10 +97,20 @@ def main():
     avg_train_accuracy = sum(train_accuracies) / len(train_accuracies)
     avg_test_accuracy = sum(test_accuracies) / len(test_accuracies)
 
+    avg_dict = {
+        'Training Accuracy': [avg_train_accuracy], 
+        'Testing Accuracy': [avg_test_accuracy]
+    }
+
+    avg_df = pd.DataFrame(avg_dict)
+
+    # Save to csv
+    if not os.path.exists('results_data'):
+        os.makedirs('results_data')
+    avg_df.to_csv(f'results_data/Average_Accuracy.csv', index=False)
+
     print("Average Training Accuracy:", avg_train_accuracy)
     print("Average Testing Accuracy:", avg_test_accuracy)
-    
-
 
 
 
